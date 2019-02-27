@@ -20,40 +20,14 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
-
 @app.route("/")
 def index():
-    return "Project 1: TODO"
+    return render_template("index.html")
 
 @app.route("/register")
+def register():
+    return render_template("register.html")
 
 @app.route("/login")
-
-@app.route("/books/<str>")
-# @app.route("/<string:word>")
-# def testing(word):
-#     return f"<h1>hello, {word}!</h1>"
-#
-# @app.route("/testing")
-# def testing():
-#     var = "testing for works"
-#     return render_template("index.html", var=var)
-#
-# @app.route("/condition")
-# def condition():
-#     condition = False
-#     return render_template("index.html", condition=condition)
-#
-# @app.route("/loops")
-# def loops():
-#     names = ['Charlie', 'Bob', 'Joe']
-#     return render_template("index.html", names=names)
-#
-# @app.route("/links")
-# def link():
-#     return render_template("more.html")
-#
-# @app.route("/forms", methods=['POST'])
-# def form():
-#     input = request.form.get("input")
-#     return render_template("index.html", input=input)
+def login():
+    return render_template("login.html")
