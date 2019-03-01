@@ -46,7 +46,7 @@ def hello():
         return redirect(url_for('registerPage'))
     else:
         password = generate_password_hash(password)
-        db.execute("INSERT INTO users (username, password) VALUES (:name, :password)",
-                   {"name": username, "password": password})
-        db.commit()
+        # db.execute("INSERT INTO users (username, password) VALUES (:name, :password)",
+        #            {"name": username, "password": password})
+        # db.commit()
         return render_template("hello.html", name=username, password=password)
