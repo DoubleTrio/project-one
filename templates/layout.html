@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>Bookstore</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
     </head>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <a class="navbar-brand" href="{{ url_for('index') }}">Web Development - Project 1</a>
@@ -16,10 +17,10 @@
         <a class="nav-link" href="{{ url_for('index')}}">Home</a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="{{ url_for('login')}}">Login</a>
+        <a class="nav-link" href="{{ url_for('loginPage')}}">Login</a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="{{ url_for('register')}}">Register</a>
+        <a class="nav-link" href="{{ url_for('registerPage')}}">Register</a>
       </li>
     </ul>
     <form class="form-inline my-2 my-lg-0">
