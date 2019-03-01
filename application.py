@@ -3,6 +3,7 @@ from flask import Flask, session, render_template, request, flash, redirect, url
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from werkzeug.security import generate_password_hash
 # https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins - Resource
 app = Flask(__name__)
 
@@ -33,11 +34,19 @@ def loginPage():
 
 @app.route("/hello", methods=["POST"])
 def hello():
-    name = request.form.get("name")
+    username = request.form.get("name")
     password = request.form.get("password")
-    if name == "" or password == "":
-        flash("Please fill in your username and password")
+    password_two = request.form.get("password_two")
+
+    if username == "" or password == "" or password_two == "":
+        flash("Please fill in all sections")
+        return redirect(url_for('registerPage'))
+    elif password != password_two:
+        flash("Passwords do not match")
         return redirect(url_for('registerPage'))
     else:
-        flash("Your account was created! You can login now!")
-        return render_template("hello.html", name=name, password=password)
+        password = generate_password_hash(password)
+        db.execute("INSERT INTO users (username, password) VALUES (:name, :password)",
+                   {"name": username, "password": password})
+        db.commit()
+        return render_template("hello.html", name=username, password=password)
