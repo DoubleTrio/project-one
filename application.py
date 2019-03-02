@@ -66,9 +66,9 @@ def login():
         # Try and except used to catch AttributeError when username is not found
         try:
             if loginInfo.password == passwordLogin:
-                session["login"] = usernameLogin
+                session["logged_in"] = True
                 flash("Success")
-                return redirect(url_for("login"))
+                return render_template("main.html")
             else:
                 flash("Invalid username or password")
                 return redirect(url_for("login"))
@@ -77,4 +77,8 @@ def login():
             return redirect(url_for("login"))
     else:
         return render_template("login.html")  
-        
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))

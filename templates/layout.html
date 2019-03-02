@@ -20,10 +20,13 @@
         <a class="nav-link" href="{{ url_for('register')}}">Register</a>
       </li>
     </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-warning my-2 my-sm-0" type="submit">Search</button>
-    </form>
+    <span class="navbar-text">
+        {% if session["logged_in"] %}
+            <a style="color: #F1AB86;" href="{{ url_for('logout')}}">Logout</a>
+        {% else %}
+            You are currently logged out
+        {% endif %}      
+    </span>
 </nav>
     <h1>{% block heading %}{% endblock %}</h1>
     <body>
