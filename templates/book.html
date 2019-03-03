@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+    Bookstore
+{% endblock %}
+
+{% block body %}
+    {% if session["logged_in"] %}
+        Hey, you have access
+        <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action">Dapibus ac facilisis in</a>
+            <a href="#" class="list-group-item list-group-item-action">Morbi leo risus</a>
+            <a href="#" class="list-group-item list-group-item-action">Porta ac consectetur ac</a>
+        </div>
+    {% else %}
+    <div class="logged_out">
+        You currently do not have access to this page. <a href = "{{ url_for('login') }}">Login to gain access!</a>
+    </div>
+    {% endif %}
+{% endblock %}

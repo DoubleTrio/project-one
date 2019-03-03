@@ -65,7 +65,10 @@ def login():
 
         # Try and except used to catch AttributeError when username is not found
         try:
-            if loginInfo.password == passwordLogin:
+            if session["logged_in"]: 
+                flash("You are already logged in. Logout first")
+                return redirect(url_for("login"))
+            elif loginInfo.password == passwordLogin:
                 session["logged_in"] = True
                 session["name"] = usernameLogin
                 flash("Success")
@@ -89,18 +92,23 @@ def search():
     if request.method == 'POST':
         searchInput = request.form.get("searchInput")
         session["bookList"] = []
-        
-        flash(f"searched for {searchInput}")
-        results = db.execute(f"SELECT * FROM books WHERE title ILIKE '%{searchInput}%' OR isbn ILIKE '%{searchInput}%' OR author ILIKE '%{searchInput}%'").fetchall()
-        for book in results:
-            session["bookList"].append(book)
-        
+        if len(searchInput) == 0:
+            flash("Invalid input")
+            return redirect(url_for("search"))
+
+        session["bookList"] = db.execute(f"SELECT * FROM books WHERE title ILIKE '%{searchInput}%' OR isbn ILIKE '%{searchInput}%' OR author ILIKE '%{searchInput}%'").fetchall()
+
         if len(session["bookList"]) == 0:
-            flash(f"Your search - {searchInput} - did not produce any results.")
+            flash(f"Your search - {searchInput} - did not produce any results")
             return redirect(url_for("search"))
             
         return render_template("result.html", bookList=session["bookList"])
-        # return redirect(url_for("search"))
     else:
         return render_template("search.html")
 
+@app.route("/book", methods=['GET', 'POST'])
+def book():
+    if request.method == 'POST':
+        return True
+    else:
+        return render_template("book.html")
