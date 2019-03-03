@@ -47,7 +47,7 @@ def register():
                     flash("Username already taken")
                     return redirect(url_for('register'))
 
-            # password = generate_password_hash(password)
+            password = generate_password_hash(password)
             db.execute("INSERT INTO users (username, password) VALUES (:name, :password)",
                     {"name": username, "password": password})
             db.commit()
@@ -67,8 +67,9 @@ def login():
         try:
             if loginInfo.password == passwordLogin:
                 session["logged_in"] = True
+                session["name"] = usernameLogin
                 flash("Success")
-                return render_template("main.html")
+                return redirect(url_for("search"))
             else:
                 flash("Invalid username or password")
                 return redirect(url_for("login"))
@@ -82,3 +83,24 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
+@app.route("/search", methods=['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        searchInput = request.form.get("searchInput")
+        session["bookList"] = []
+        
+        flash(f"searched for {searchInput}")
+        results = db.execute(f"SELECT * FROM books WHERE title ILIKE '%{searchInput}%' OR isbn ILIKE '%{searchInput}%' OR author ILIKE '%{searchInput}%'").fetchall()
+        for book in results:
+            session["bookList"].append(book)
+        
+        if len(session["bookList"]) == 0:
+            flash(f"Your search - {searchInput} - did not produce any results.")
+            return redirect(url_for("search"))
+            
+        return render_template("result.html", bookList=session["bookList"])
+        # return redirect(url_for("search"))
+    else:
+        return render_template("search.html")
+

@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+    Book Search
+{% endblock %}
+
+{% block body %}
+    {% if session["logged_in"] %}
+        <div class="container col-6">
+            <div class="form-group">
+                <label> Search </label>
+                <form action="{{ url_for('search') }}" method="post">    
+                    <input class="form-control form-control-lg" id="search" type="search" placeholder="Search" aria-label="Search" name="searchInput">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+            </div>
+        <div> 
+    {% else %}
+    <div class="logged_out">
+        <a href = "{{ url_for('login') }}">Login to search for books!</a>
+    </div>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <div class="alert alert-danger container margin">{{ message }}</div>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+{% endblock %}
