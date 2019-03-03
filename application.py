@@ -1,9 +1,9 @@
 import os
-from flask import Flask, session, render_template, request, flash, redirect, url_for, request
+import requests
+from flask import Flask, session, render_template, request, flash, redirect, url_for, request, jsonify, abort
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from werkzeug.security import generate_password_hash, check_password_hash
 # https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins - Resource
 app = Flask(__name__)
 
@@ -47,7 +47,7 @@ def register():
                     flash("Username already taken")
                     return redirect(url_for('register'))
 
-            password = generate_password_hash(password)
+            
             db.execute("INSERT INTO users (username, password) VALUES (:name, :password)",
                     {"name": username, "password": password})
             db.commit()
@@ -65,10 +65,8 @@ def login():
 
         # Try and except used to catch AttributeError when username is not found
         try:
-            if session["logged_in"]: 
-                flash("You are already logged in. Logout first")
-                return redirect(url_for("login"))
-            elif loginInfo.password == passwordLogin:
+
+            if loginInfo.password == passwordLogin:
                 session["logged_in"] = True
                 session["name"] = usernameLogin
                 flash("Success")
@@ -106,9 +104,45 @@ def search():
     else:
         return render_template("search.html")
 
-@app.route("/book", methods=['GET', 'POST'])
-def book():
+@app.route("/search/<string:isbn>", methods=['GET', 'POST'])
+def book(isbn):
     if request.method == 'POST':
         return True
     else:
-        return render_template("book.html")
+        book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
+        res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "bz2Jp4NrQ0RVCcbwFWYw", "isbns": isbn})
+        data = res.json()["books"][0]
+        average_rating = data["average_rating"]
+        work_ratings_count = data["work_ratings_count"]
+        json = {
+            "title":book.title,
+            "author": book.author,
+            "year": book.year,
+            "isbn": book.isbn,
+            "review_count": work_ratings_count,
+            "average_score": average_rating
+        }
+        api = jsonify(json)
+        return render_template("book.html", book=book, api=api, json=json)
+        # return api
+
+@app.route("/api/<string:isbn>")
+def api(isbn):
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
+    if not book:
+        return render_template("404.html")
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "bz2Jp4NrQ0RVCcbwFWYw", "isbns": isbn})
+    data = res.json()["books"][0]
+    average_rating = data["average_rating"]
+    work_ratings_count = data["work_ratings_count"]
+    api = jsonify({
+        "title":book.title,
+        "author": book.author,
+        "year": book.year,
+        "isbn": book.isbn,
+        "review_count": work_ratings_count,
+        "average_score": average_rating
+    })
+    return api
+
+
