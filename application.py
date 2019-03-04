@@ -4,7 +4,7 @@ from flask import Flask, session, render_template, request, flash, redirect, url
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-# https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins - Resource
+
 app = Flask(__name__)
 
 # Check for environment variable
@@ -47,9 +47,8 @@ def register():
                     flash("Username already taken")
                     return redirect(url_for('register'))
 
-            
-            db.execute("INSERT INTO users (username, password) VALUES (:name, :password)",
-                    {"name": username, "password": password})
+            # Inserting the name and password into the database
+            db.execute("INSERT INTO users (username, password) VALUES (:name, :password)", {"name": username, "password": password})
             db.commit()
             flash(f"Success! Your account was created! Your username is {username} and your password is {password}")
             return redirect(url_for("login"))
@@ -61,25 +60,32 @@ def login():
     if request.method == 'POST':
         usernameLogin = request.form.get("usernameLogin")
         passwordLogin = request.form.get("passwordLogin")
+
+        # Selecting the username to compare passwords
         loginInfo = db.execute("SELECT * FROM users WHERE username = :username", {"username": usernameLogin}).fetchone()
 
         # Try and except used to catch AttributeError when username is not found
         try:
-
+            
+            # Password matches registered password and creates a session of the user logged in
             if loginInfo.password == passwordLogin:
                 session["logged_in"] = True
                 session["name"] = usernameLogin
                 flash("Success")
                 return redirect(url_for("search"))
+            
+            # Correct username, wrong password
             else:
                 flash("Invalid username or password")
                 return redirect(url_for("login"))
+
         except AttributeError:
             flash("Invalid username or password")
             return redirect(url_for("login"))
     else:
         return render_template("login.html")  
 
+# Clearing the session to "logout" the user
 @app.route("/logout")
 def logout():
     session.clear()
@@ -89,13 +95,17 @@ def logout():
 def search():
     if request.method == 'POST':
         searchInput = request.form.get("searchInput")
-        session["bookList"] = []
+        
+        # Invalid when the user searches nothing
         if len(searchInput) == 0:
             flash("Invalid input")
             return redirect(url_for("search"))
 
+        # Initializing bookList and selecting the isbn, titles, and author matching searchInput
+        session["bookList"] = []
         session["bookList"] = db.execute(f"SELECT * FROM books WHERE title ILIKE '%{searchInput}%' OR isbn ILIKE '%{searchInput}%' OR author ILIKE '%{searchInput}%'").fetchall()
 
+        # Occurs when searchInput does not produce a result
         if len(session["bookList"]) == 0:
             flash(f"Your search - {searchInput} - did not produce any results")
             return redirect(url_for("search"))
@@ -106,35 +116,34 @@ def search():
 
 @app.route("/search/<string:isbn>", methods=['GET', 'POST'])
 def book(isbn):
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
     if request.method == 'POST':
-        return True
+        rating = request.form.get("rating")
+        review = request.form.get("review")
+        flash(f"{rating} and {review}")
+        return redirect(url_for("book", isbn=book.isbn))
     else:
-        book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
         res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "bz2Jp4NrQ0RVCcbwFWYw", "isbns": isbn})
         data = res.json()["books"][0]
         average_rating = data["average_rating"]
         work_ratings_count = data["work_ratings_count"]
-        json = {
-            "title":book.title,
-            "author": book.author,
-            "year": book.year,
-            "isbn": book.isbn,
-            "review_count": work_ratings_count,
-            "average_score": average_rating
-        }
-        api = jsonify(json)
-        return render_template("book.html", book=book, api=api, json=json)
-        # return api
+        return render_template("book.html", book = book, average_rating = average_rating, work_ratings_count = work_ratings_count)
 
 @app.route("/api/<string:isbn>")
 def api(isbn):
+
+    # Searching for the book based isbn and checking if the isbn can be found
     book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
     if not book:
         return render_template("404.html")
+
+    # Gathering the average_rating and work_ratings_count from Goodreads    
     res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "bz2Jp4NrQ0RVCcbwFWYw", "isbns": isbn})
     data = res.json()["books"][0]
     average_rating = data["average_rating"]
     work_ratings_count = data["work_ratings_count"]
+
+    # Creating the API
     api = jsonify({
         "title":book.title,
         "author": book.author,
@@ -143,6 +152,7 @@ def api(isbn):
         "review_count": work_ratings_count,
         "average_score": average_rating
     })
+
     return api
 
 

@@ -5,28 +5,26 @@
 {% endblock %}
 
 {% block body %}
-        <div class="list-group container">
-            {% for book in bookList %}
-            <a href="{{url_for('book', isbn=book.isbn)}}" class="list-group-item list-group-item-action flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{book.title}} ({{book.year}})</h5>
-                </div>
-                <div class="d-flex w-100 justify-content-between">
-                    <small>by {{book.author}}</small> 
-                    <small>ISBN: {{book.isbn}}</small> 
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-
-    
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <div class="alert alert-danger container margin">{{ message }}</div>
+    <div class="list-group container">
+        {% for book in bookList %}
+        <a href="{{url_for('book', isbn=book.isbn)}}" class="list-group-item list-group-item-action flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{book.title}} ({{book.year}})</h5>
+            </div>
+            <div class="d-flex w-100 justify-content-between">
+                <small>by {{book.author}}</small> 
+                <small>ISBN: {{book.isbn}}</small> 
+            </div>
+        </a>
         {% endfor %}
-        </ul>
-    {% endif %}
+    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+            {% for message in messages %}
+                <div class="alert alert-danger container margin">{{ message }}</div>
+            {% endfor %}
+            </ul>
+        {% endif %}
     {% endwith %}
 {% endblock %}

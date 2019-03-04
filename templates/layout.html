@@ -8,32 +8,32 @@
         <meta charset="UTF-8">
     </head>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="{{ url_for('index') }}">Web Development - Project 1</a>
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ url_for('index')}}">Home</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ url_for('login')}}">Login</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ url_for('register')}}">Register</a>
-      </li>
-      {% if session["logged_in"] %}
-      <li class="nav-item active">
-          <a class="nav-link" href="{{ url_for('search')}}">Search</a>
-      </li>
-      {% endif %}
-    </ul>
-    <span class="navbar-text">
-        {% if session["logged_in"] %}
-            <div>Hello, {{ session["name"] }}! </div>
-            <a style="color: #F1AB86; float: right;" href="{{ url_for('logout')}}">Logout</a>
-        {% else %}
-            You are currently logged out
-        {% endif %}      
-    </span>
-</nav>
+        <a class="navbar-brand" href="{{ url_for('index') }}">Web Development - Project 1</a>
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="{{ url_for('index')}}">Home</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="{{ url_for('login')}}">Login</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="{{ url_for('register')}}">Register</a>
+            </li>
+            {% if session["logged_in"] %}
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('search')}}">Search</a>
+                </li>
+            {% endif %}
+        </ul>
+        <span class="navbar-text">
+            {% if session["logged_in"] %}
+                <div>Hello, {{ session["name"] }}! </div>
+                <a style="color: #F1AB86; float: right;" href="{{ url_for('logout')}}">Logout</a>
+            {% else %}
+                You are currently logged out
+            {% endif %}      
+        </span>
+    </nav>
     <h1>{% block heading %}{% endblock %}</h1>
     <body>
       {% block body %}{% endblock %}
