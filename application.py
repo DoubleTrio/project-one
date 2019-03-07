@@ -33,7 +33,7 @@ def register():
 
         # Checking if all input fields are filled and whether the passwords match
         if username == "" or password == "" or password_two == "":
-            flash("Please fill in all sections")
+            flash("Please fill in all of the sections")
             return redirect(url_for('register'))
         elif password != password_two:
             flash("Passwords do not match")
@@ -50,7 +50,6 @@ def register():
             # Inserting the name and password into the database
             db.execute("INSERT INTO users (username, password) VALUES (:name, :password)", {"name": username, "password": password})
             db.commit()
-            flash(f"Success! Your account was created! Your username is {username} and your password is {password}")
             return redirect(url_for("login"))
     else:
         return render_template("register.html")
@@ -71,7 +70,7 @@ def login():
             if loginInfo.password == passwordLogin:
                 session["logged_in"] = True
                 session["name"] = usernameLogin
-                flash("Success")
+                session["id"] = loginInfo.id
                 return redirect(url_for("search"))
             
             # Correct username, wrong password
@@ -116,18 +115,35 @@ def search():
 
 @app.route("/search/<string:isbn>", methods=['GET', 'POST'])
 def book(isbn):
-    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+    session["reviews"] = []
     if request.method == 'POST':
         rating = request.form.get("rating")
         review = request.form.get("review")
-        flash(f"{rating} and {review}")
-        return redirect(url_for("book", isbn=book.isbn))
+        check = db.execute("SELECT * FROM reviews WHERE username = :username AND isbn = :isbn", {"username": session["name"], "isbn": book.isbn}).fetchone()
+        if check:
+            flash("You have already rated this book!")
+            redirect(url_for("book", isbn = book.isbn))
+        elif rating == None or review == "":
+            flash("Please submit both your review and your rating")
+            redirect(url_for("book", isbn = book.isbn))
+        else:
+            db.execute("INSERT into reviews (isbn, username, review, rating) VALUES (:isbn, :username, :review, :rating)", {"isbn": book.isbn, "username": session["name"], "review": review, "rating": rating})
+            db.commit()
+        return redirect(url_for("book", isbn = book.isbn))
     else:
+
+        # Getting the average rating and number of ratings from Goodreads
         res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "bz2Jp4NrQ0RVCcbwFWYw", "isbns": isbn})
         data = res.json()["books"][0]
         average_rating = data["average_rating"]
         work_ratings_count = data["work_ratings_count"]
-        return render_template("book.html", book = book, average_rating = average_rating, work_ratings_count = work_ratings_count)
+
+        # Getting all the reviews
+        reviewList = db.execute("SELECT * FROM reviews WHERE isbn = :isbn", {"isbn": book.isbn}).fetchall()
+        for review in reviewList:
+            session["reviews"].append(review)
+        return render_template("book.html", book = book, average_rating = average_rating, work_ratings_count = work_ratings_count, reviewList=session["reviews"])
 
 @app.route("/api/<string:isbn>")
 def api(isbn):
@@ -137,7 +153,7 @@ def api(isbn):
     if not book:
         return render_template("404.html")
 
-    # Gathering the average_rating and work_ratings_count from Goodreads    
+    # Gathering the average_rating and work_ratings_count from Goodreads, similar code to the book search but instead used to make a API    
     res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "bz2Jp4NrQ0RVCcbwFWYw", "isbns": isbn})
     data = res.json()["books"][0]
     average_rating = data["average_rating"]
